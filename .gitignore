@@ -1,0 +1,45 @@
+# Data files (Never commit Kaggle raw datasets)
+*.csv
+*.parquet
+*.feather
+*.h5
+*.hdf5
+data/
+datasets/
+raw_data/
+*.zip
+*.tar.gz
+
+# Python & Environment
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+.venv
+env/
+venv/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# Notebooks
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# Model Checkpoints & Artifacts
+models/*.pkl
+models/*.joblib
+models/*.bin
+models/*.pt
+models/*.onnx
+checkpoints/
+
+# IDE & OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
