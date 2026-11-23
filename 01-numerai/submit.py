@@ -23,6 +23,11 @@ import pandas as pd
 from scipy.stats import rankdata
 import lightgbm as lgb
 from numerapi import NumerAPI
+from dotenv import load_dotenv
+
+# Load credentials from .env in project root or current directory
+load_dotenv()
+load_dotenv(Path(__file__).parent.parent / ".env")
 
 # Configure logging
 logging.basicConfig(
