@@ -1,16 +1,16 @@
-# Data files (Never commit Kaggle raw datasets)
+# Data files & Raw Tournament Datasets (Never commit large data)
 *.csv
 *.parquet
 *.feather
 *.h5
 *.hdf5
+*.zip
+*.tar.gz
 data/
 datasets/
 raw_data/
-*.zip
-*.tar.gz
 
-# Python & Environment
+# Python & Virtual Environments
 __pycache__/
 *.py[cod]
 *$py.class
@@ -24,19 +24,18 @@ build/
 dist/
 *.egg-info/
 
-# Notebooks
+# Notebooks & Caches
 .ipynb_checkpoints/
 */.ipynb_checkpoints/*
 
-# Model Checkpoints & Artifacts
+# Model Checkpoints & Logs
 models/*.pkl
 models/*.joblib
 models/*.bin
-models/*.pt
-models/*.onnx
-checkpoints/
+*.log
+numerai.log
 
-# IDE & OS
+# IDE & Operating System
 .DS_Store
 Thumbs.db
 .vscode/
