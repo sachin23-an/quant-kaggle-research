@@ -146,10 +146,13 @@ def run_pipeline(model_name: str, data_dir: str, dry_run: bool = False):
     train_df = pd.read_parquet(local_train_path, columns=cols_to_load)
     logger.info(f"Train dataset loaded: {train_df.shape[0]:,} rows x {train_df.shape[1]} columns.")
 
-    # Convert any string columns (e.g. feature_country) to category for LightGBM
-    for col in feature_cols:
-        if col in train_df.columns and train_df[col].dtype == "object":
-            train_df[col] = train_df[col].astype("category")
+    # Convert non-numeric columns (e.g. feature_country string) to category for LightGBM
+    cat_cols = [
+        col for col in feature_cols
+        if col in train_df.columns and not pd.api.types.is_numeric_dtype(train_df[col])
+    ]
+    for col in cat_cols:
+        train_df[col] = train_df[col].astype("category")
 
     # Drop rows where target is NaN (if any)
     train_df = train_df.dropna(subset=["target"])
@@ -186,8 +189,8 @@ def run_pipeline(model_name: str, data_dir: str, dry_run: bool = False):
     logger.info(f"Live dataset loaded: {len(live_df):,} live global assets.")
 
     # Convert categorical columns
-    for col in feature_cols:
-        if col in live_df.columns and live_df[col].dtype == "object":
+    for col in cat_cols:
+        if col in live_df.columns:
             live_df[col] = live_df[col].astype("category")
 
     # 6. Generate Predictions & Rank Normalization
