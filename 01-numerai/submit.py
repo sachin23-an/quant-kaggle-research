@@ -122,9 +122,52 @@ def load_dataset_features(napi, version, data_dir):
     return feature_cols
 
 
+def check_round_window(napi):
+    """
+    Checks the active round's open time and verifies whether the current execution
+    falls within Numerai's strict 1-hour on-time submission window.
+    """
+    try:
+        q = """
+        query {
+          rounds(tournament: 8, limit: 1) {
+            number
+            openTime
+            closeTime
+          }
+        }
+        """
+        data = napi.raw_query(q)
+        rounds = data.get("data", {}).get("rounds", [])
+        if not rounds:
+            return
+        current_r = rounds[0]
+        round_num = current_r["number"]
+        open_time_str = current_r["openTime"]
+        from datetime import datetime, timezone
+        open_dt = datetime.fromisoformat(open_time_str.replace("Z", "+00:00"))
+        now_dt = datetime.now(timezone.utc)
+        elapsed_min = (now_dt - open_dt).total_seconds() / 60.0
+        remaining_min = 60.0 - elapsed_min
+
+        if remaining_min > 0:
+            logger.info(
+                f"[ON-TIME WINDOW] Round {round_num} opened at {open_time_str}. "
+                f"{remaining_min:.1f} minutes remaining in the 60-min on-time window."
+            )
+        else:
+            logger.warning(
+                f"[LATE WINDOW WARNING] Round {round_num} opened at {open_time_str} "
+                f"({abs(remaining_min):.1f} min past the 1-hour cutoff). Submission will register as LATE."
+            )
+    except Exception as e:
+        logger.debug(f"Could not inspect round window: {e}")
+
+
 def run_pipeline(model_name: str, data_dir: str, dry_run: bool = False):
     os.makedirs(data_dir, exist_ok=True)
     napi = get_authenticated_napi()
+    check_round_window(napi)
 
     # 1. Dataset Discovery
     version = get_active_dataset_version(napi)
