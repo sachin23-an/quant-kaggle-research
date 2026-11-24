@@ -14,6 +14,7 @@ Developed by **Sachin Kumar** ([GitHub: @sachin23-an](https://github.com/sachin2
 | :-: | :--- | :--- | :---: | :--- |
 | **01** | [**01-numerai**](./01-numerai) | **Numerai Classic** Live Hedge Fund | CORR20 / MMC20 | Live alpha submission on `v6.0` dataset. Model: [`sachin23_an`](https://numer.ai/sachin23_an). Verified Round 1404 submission. |
 | **02** | [**02-credit-card-fraud**](./02-credit-card-fraud) | **Kaggle S6E11** Transaction Fraud | ROC-AUC | Multi-Model Logit-Space Rank Fusion, Clean-Zone Filtering & Constrained Diversity Search. Score: **0.95567** (Rank 81). |
+| **03** | [**03-alphanova**](./03-alphanova) | **AlphaNova** Biweekly Season 2 | Annualized IR ($Q$) | Dual Ridge + Shallow XGBoost cross-sectional spread alpha. Validation Sharpe: **+0.0402**, City Novelty: **51.3°**. |
 
 ---
 
@@ -42,6 +43,20 @@ Developed by **Sachin Kumar** ([GitHub: @sachin23-an](https://github.com/sachin2
 * **Leaderboard Result:** Achieved **0.95567 ROC-AUC (Rank 81)** on Kaggle Playground S6E11 across 6 iterations.
 
 👉 **[Read 02-credit-card-fraud Documentation & Code](./02-credit-card-fraud)**
+
+---
+
+## 3. [03. AlphaNova Biweekly Cross-Sectional Alpha](./03-alphanova)
+
+* **Objective:** Forecast cross-sectional alpha signals across 20 liquid instruments on 6 continuous hourly features for capital allocation in AlphaNova Season 2.
+* **The Alpha Challenge:** Extreme turnover penalty (5 bps on every hourly rebalance) wipes out unsmoothed gross alpha; models must pass a server-side permutation gate and maintain $\ge 50^\circ$ novelty distance from existing signals in the season pot.
+* **Architecture:**
+  * **Spread Feature Engineering:** Contemporaneous cross-sectional ranking of features and inverse relative-value spreads ($(F_5 - F_6)$, $(F_2 - F_6)$, $-F_6$).
+  * **Dual Regularized Blending:** Blends analytical $L_2$-regularized Ridge regression with shallow, regularized XGBoost (`max_depth=2`, `min_child_weight=600`).
+  * **Causal Turnover Control:** 300-hour exponential position smoothing suppresses the 5 bps fee drag, accompanied by causal expanding-mean static tilt subtraction.
+* **Validation Result:** Achieved **+0.0402 Holdout Sharpe** (+51% over benchmark) and **51.3° City Novelty**, with verified de-mean parity and sub-2-second training.
+
+👉 **[Read 03-alphanova Documentation & Code](./03-alphanova)**
 
 ---
 
