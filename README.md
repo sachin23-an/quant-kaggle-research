@@ -13,7 +13,7 @@ Developed by **Sachin Kumar** ([GitHub: @sachin23-an](https://github.com/sachin2
 | # | Project | Domain / Platform | Primary Metric | Core Innovation / Result |
 | :-: | :--- | :--- | :---: | :--- |
 | **01** | [**01-numerai**](./01-numerai) | **Numerai Classic** Live Hedge Fund | CORR20 / MMC20 | Live alpha submission on `v6.0` dataset. Model: [`sachin23_an`](https://numer.ai/sachin23_an). Verified Round 1404 submission. |
-| **02** | [**02-credit-card-fraud**](./02-credit-card-fraud) | **Kaggle S6E11** Transaction Fraud | ROC-AUC | Continuous B-Splines + Shallow LightGBM Rank Blend breaking through GBDT plateau. Score: **0.9472+** (Top ~1900). |
+| **02** | [**02-credit-card-fraud**](./02-credit-card-fraud) | **Kaggle S6E11** Transaction Fraud | ROC-AUC | Multi-Model Logit-Space Rank Fusion, Clean-Zone Filtering & Constrained Diversity Search. Score: **0.95567** (Rank 81). |
 
 ---
 
@@ -35,11 +35,11 @@ Developed by **Sachin Kumar** ([GitHub: @sachin23-an](https://github.com/sachin2
 ## 2. [02. Credit Card Fraud Detection](./02-credit-card-fraud)
 
 * **Objective:** Detect fraudulent credit card transactions in synthetic transactional data with severe class imbalance (~1.67% fraud rate).
-* **The Research Discovery ("The Complexity Trap"):**
-  * Deep gradient boosted trees (1,000+ estimators, XGBoost/LightGBM/CatBoost) consistently plateau at **~0.947 ROC-AUC** because axis-aligned orthogonal step functions struggle to approximate smooth additive synthetic manifolds (CTGAN artifacts).
-  * **Continuous Spline Representation:** Using `SplineTransformer(degree=3, n_knots=5)` with $L_2$-regularized Logistic Regression models the continuous marginal log-odds smoothly without stepping artifacts.
-  * **Rank-Averaged Ensemble:** Blending smooth Spline predictions with a shallow, regularized LightGBM classifier (`max_depth=5`, `scale_pos_weight=3.0`) via `scipy.stats.rankdata` captures both smooth margins and non-linear interactions, breaking through the GBDT ceiling.
-* **Leaderboard Result:** Achieved **0.9472+** ROC-AUC (Rank Top ~1900) on Kaggle Playground S6E11.
+* **The Methodology & Architecture:**
+  * **Logit-Rank Projection:** Converts model outputs into unbounded log-odds space $L(x) = \text{logit}(R(x))$ to combine diverse architectures (RealMLP, TabM, LightGBM, CatBoost, GPT-2) linearly without boundary compression.
+  * **Domain Clean-Zone Masking:** Identifies low-risk non-fraud records (clean verification flags, zero disputes, low merchant risk) and shifts their rank downwards, eliminating false-positive contamination.
+  * **Constrained Diversity Search:** Searches blend partners under bounded percentile shift ($\le 0.001$) and minimum row reordering ($\ge 10\%$) to find non-duplicative ensemble partners.
+* **Leaderboard Result:** Achieved **0.95567 ROC-AUC (Rank 81)** on Kaggle Playground S6E11 across 6 iterations.
 
 👉 **[Read 02-credit-card-fraud Documentation & Code](./02-credit-card-fraud)**
 
