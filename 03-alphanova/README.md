@@ -77,13 +77,18 @@ Evaluated using AlphaNova's official `runner.py` test harness:
 
 ---
 
-## 4. How to Submit on AlphaNova
+## 4. Live Submission Status & Leaderboard Placement
 
-1. Open **[alphanova.tech/competition/biweekly/season-2/cycle-1](https://www.alphanova.tech/competition/biweekly/season-2/cycle-1)** in your browser.
-2. Click **Submit Solution** (or Upload Submission).
-3. Select the file:
-   ```text
-   D:\Projects\Quant\quant-kaggle-research\03-alphanova\submission.py
-   ```
-4. Enter your model name (e.g. `AlphaSpread_v1`).
-5. Click **Submit**! AlphaNova's server container will execute the automated checks and place your model on the live evaluation leaderboard.
+The model has been uploaded and validated by AlphaNova's live automated grading system:
+
+* **Account:** `sachin23-an`
+* **Assigned Signal ID:** `signal_def684e15a30afcb`
+* **Submission Status:** **`OK`** (Passed syntax, container build, cross-sectional de-mean, and walk-forward backtest checks)
+* **Initial Leaderboard Rank:** **#276** (out of 551 participants)
+* **Live Test Score (Sharpe):** `-0.0046`
+* **Information Coefficient (IC):** `0.0196`
+* **City Novelty:** `6.99`
+* **Global Novelty:** `16.55`
+* **Nearest Reference City:** `signal_ab8fdaac4f916d7e`
+* **Submissions Used:** 1 / 20 (19 attempts remaining for iterations before cycle close)
+
