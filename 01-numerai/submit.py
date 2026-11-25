@@ -170,9 +170,28 @@ def check_round_window(napi):
         logger.debug(f"Could not inspect round window: {e}")
 
 
+def ensure_new_round(napi, timeout_min: int = 30, poll_sec: int = 20) -> bool:
+    """
+    Ensures that today's new round has actually opened before generating and submitting signals.
+    Prevents accidental late submissions to a closing round.
+    """
+    import time
+    start_time = time.time()
+    logger.info("Verifying active tournament round state...")
+    while time.time() - start_time < timeout_min * 60:
+        if napi.check_new_round(hours=2):
+            logger.info("CONFIRMED: Today's new round is OPEN! Proceeding with on-time submission.")
+            return True
+        logger.info("New round has not opened yet (server still transitioning/closing previous round). Polling again in 20s...")
+        time.sleep(poll_sec)
+    logger.warning("Timeout waiting for fresh round. Proceeding anyway.")
+    return False
+
+
 def run_pipeline(model_name: str, data_dir: str, dry_run: bool = False, retrain: bool = False):
     os.makedirs(data_dir, exist_ok=True)
     napi = get_authenticated_napi()
+    ensure_new_round(napi)
     check_round_window(napi)
 
     # 1. Dataset Discovery
