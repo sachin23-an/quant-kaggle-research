@@ -170,7 +170,7 @@ def check_round_window(napi):
         logger.debug(f"Could not inspect round window: {e}")
 
 
-def ensure_new_round(napi, timeout_min: int = 30, poll_sec: int = 20) -> bool:
+def ensure_new_round(napi, timeout_min: int = 90, poll_sec: int = 20) -> bool:
     """
     Ensures that today's new round has actually opened before generating and submitting signals.
     Prevents accidental late submissions to a closing round.
@@ -184,8 +184,8 @@ def ensure_new_round(napi, timeout_min: int = 30, poll_sec: int = 20) -> bool:
             return True
         logger.info("New round has not opened yet (server still transitioning/closing previous round). Polling again in 20s...")
         time.sleep(poll_sec)
-    logger.warning("Timeout waiting for fresh round. Proceeding anyway.")
-    return False
+    logger.error("Timeout waiting for fresh round. Aborting execution to prevent accidental late submission.")
+    sys.exit(1)
 
 
 def run_pipeline(model_name: str, data_dir: str, dry_run: bool = False, retrain: bool = False):
