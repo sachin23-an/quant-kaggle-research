@@ -22,6 +22,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import rankdata
 import lightgbm as lgb
+import joblib
 from numerapi import NumerAPI
 from dotenv import load_dotenv
 
@@ -49,13 +50,18 @@ def parse_args():
     parser.add_argument(
         "--data-dir",
         type=str,
-        default="./data",
-        help="Directory to store downloaded tournament parquet files (default: ./data)",
+        default=str(Path(__file__).resolve().parent.parent / "data"),
+        help="Directory to store downloaded tournament parquet files (default: project root data)",
     )
     parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Train model and generate submission.parquet without uploading to Numerai",
+    )
+    parser.add_argument(
+        "--retrain",
+        action="store_true",
+        help="Force retraining of the model instead of loading the cached model file",
     )
     return parser.parse_args()
 
@@ -164,7 +170,7 @@ def check_round_window(napi):
         logger.debug(f"Could not inspect round window: {e}")
 
 
-def run_pipeline(model_name: str, data_dir: str, dry_run: bool = False):
+def run_pipeline(model_name: str, data_dir: str, dry_run: bool = False, retrain: bool = False):
     os.makedirs(data_dir, exist_ok=True)
     napi = get_authenticated_napi()
     check_round_window(napi)
@@ -176,50 +182,59 @@ def run_pipeline(model_name: str, data_dir: str, dry_run: bool = False):
     # 2. Extract Feature Columns
     feature_cols = load_dataset_features(napi, version, data_dir)
 
-    # 3. Download & Load Training Dataset
-    train_file = f"{version}/train.parquet"
-    local_train_path = Path(data_dir) / f"{version}_train.parquet"
-    if not local_train_path.exists():
-        logger.info(f"Downloading training data: {train_file} (this may take a minute on first run)...")
-        napi.download_dataset(train_file, str(local_train_path))
+    # 3. Model Loading or Training
+    model_path = Path(data_dir) / f"{version}_lgbm_model.joblib"
+    if model_path.exists() and not retrain:
+        logger.info(f"Loading cached trained model from {model_path}...")
+        model = joblib.load(model_path)
+        logger.info("Model loaded successfully from cache (skipping 2.5 min retraining).")
+    else:
+        # Download & Load Training Dataset
+        train_file = f"{version}/train.parquet"
+        local_train_path = Path(data_dir) / f"{version}_train.parquet"
+        if not local_train_path.exists():
+            logger.info(f"Downloading training data: {train_file} (this may take a minute on first run)...")
+            napi.download_dataset(train_file, str(local_train_path))
 
-    logger.info(f"Loading training data from {local_train_path}...")
-    # Load only necessary columns to minimize RAM
-    cols_to_load = ["date", "target"] + [col for col in feature_cols if col != "target"]
-    train_df = pd.read_parquet(local_train_path, columns=cols_to_load)
-    logger.info(f"Train dataset loaded: {train_df.shape[0]:,} rows x {train_df.shape[1]} columns.")
+        logger.info(f"Loading training data from {local_train_path}...")
+        # Load only necessary columns to minimize RAM
+        cols_to_load = ["date", "target"] + [col for col in feature_cols if col != "target"]
+        train_df = pd.read_parquet(local_train_path, columns=cols_to_load)
+        logger.info(f"Train dataset loaded: {train_df.shape[0]:,} rows x {train_df.shape[1]} columns.")
 
-    # Convert non-numeric columns (e.g. feature_country string) to category for LightGBM
-    cat_cols = [
-        col for col in feature_cols
-        if col in train_df.columns and not pd.api.types.is_numeric_dtype(train_df[col])
-    ]
-    for col in cat_cols:
-        train_df[col] = train_df[col].astype("category")
+        # Convert non-numeric columns (e.g. feature_country string) to category for LightGBM
+        cat_cols = [
+            col for col in feature_cols
+            if col in train_df.columns and not pd.api.types.is_numeric_dtype(train_df[col])
+        ]
+        for col in cat_cols:
+            train_df[col] = train_df[col].astype("category")
 
-    # Drop rows where target is NaN (if any)
-    train_df = train_df.dropna(subset=["target"])
-    X_train = train_df[feature_cols]
-    y_train = train_df["target"]
+        # Drop rows where target is NaN (if any)
+        train_df = train_df.dropna(subset=["target"])
+        X_train = train_df[feature_cols]
+        y_train = train_df["target"]
 
-    # 4. Model Training: LightGBM Regressor
-    logger.info("Training LightGBM Regressor (350 trees, max_depth=5, lr=0.03)...")
-    model = lgb.LGBMRegressor(
-        n_estimators=350,
-        learning_rate=0.03,
-        max_depth=5,
-        num_leaves=31,
-        colsample_bytree=0.8,
-        subsample=0.8,
-        random_state=42,
-        n_jobs=-1,
-        importance_type="gain",
-    )
-    model.fit(X_train, y_train)
-    logger.info("Model training completed successfully.")
+        # 4. Model Training: LightGBM Regressor
+        logger.info("Training LightGBM Regressor (350 trees, max_depth=5, lr=0.03)...")
+        model = lgb.LGBMRegressor(
+            n_estimators=350,
+            learning_rate=0.03,
+            max_depth=5,
+            num_leaves=31,
+            colsample_bytree=0.8,
+            subsample=0.8,
+            random_state=42,
+            n_jobs=-1,
+            importance_type="gain",
+        )
+        model.fit(X_train, y_train)
+        logger.info(f"Model training completed successfully. Caching model to {model_path}...")
+        joblib.dump(model, model_path)
+        logger.info("Model cache saved.")
 
-    # Clean up train memory
-    del train_df, X_train, y_train
+        # Clean up train memory
+        del train_df, X_train, y_train
 
     # 5. Download & Load Live Data
     live_file = f"{version}/live.parquet"
@@ -232,9 +247,12 @@ def run_pipeline(model_name: str, data_dir: str, dry_run: bool = False):
     logger.info(f"Live dataset loaded: {len(live_df):,} live global assets.")
 
     # Convert categorical columns
+    cat_cols = [
+        col for col in feature_cols
+        if col in live_df.columns and not pd.api.types.is_numeric_dtype(live_df[col])
+    ]
     for col in cat_cols:
-        if col in live_df.columns:
-            live_df[col] = live_df[col].astype("category")
+        live_df[col] = live_df[col].astype("category")
 
     # 6. Generate Predictions & Rank Normalization
     logger.info("Generating alpha predictions on live equity universe...")
@@ -288,4 +306,5 @@ if __name__ == "__main__":
         model_name=args.model_name,
         data_dir=args.data_dir,
         dry_run=args.dry_run,
+        retrain=args.retrain,
     )
