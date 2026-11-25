@@ -131,13 +131,13 @@ Numerai releases new live market data every weekday at **13:30 UTC (7:00 PM IST)
 3. Set Trigger: **Daily at 7:00 PM**.
 4. Set Action: **Start a program**:
    * **Program/script:** `python.exe` (or path to your virtualenv python)
-   * **Add arguments:** `D:\Projects\Quant\quant-kaggle-research\01-numerai\submit.py --model-name sachin23_an`
-   * **Start in:** `D:\Projects\Quant\quant-kaggle-research\01-numerai`
+   * **Add arguments:** `D:\Projects\Quant\quant-competition-research\01-numerai\submit.py --model-name sachin23_an`
+   * **Start in:** `D:\Projects\Quant\quant-competition-research\01-numerai`
 
 ### Linux / Crontab Setup:
 ```cron
 # Runs every weekday at 13:35 UTC
-35 13 * * 1-5 cd /path/to/quant-kaggle-research/01-numerai && NUMERAI_PUBLIC_ID=xxx NUMERAI_SECRET_KEY=yyy python3 submit.py >> numerai.log 2>&1
+35 13 * * 1-5 cd /path/to/quant-competition-research/01-numerai && NUMERAI_PUBLIC_ID=xxx NUMERAI_SECRET_KEY=yyy python3 submit.py >> numerai.log 2>&1
 ```
 
 ---

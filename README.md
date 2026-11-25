@@ -77,8 +77,8 @@ Developed by **Sachin Kumar** ([GitHub: @sachin23-an](https://github.com/sachin2
 
 ```bash
 # Clone the repository
-git clone https://github.com/sachin23-an/quant-kaggle-research.git
-cd quant-kaggle-research
+git clone https://github.com/sachin23-an/quant-competition-research.git
+cd quant-competition-research
 
 # Install dependencies
 pip install -r requirements.txt
