@@ -29,11 +29,16 @@ dist/
 */.ipynb_checkpoints/*
 
 # Model Checkpoints & Logs
+*.pkl
+*.joblib
+*.bin
 models/*.pkl
 models/*.joblib
 models/*.bin
 *.log
 numerai.log
+.crunchdao/
+prediction/
 
 # IDE & Operating System
 .DS_Store

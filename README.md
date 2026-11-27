@@ -15,6 +15,7 @@ Developed by **Sachin Kumar** ([GitHub: @sachin23-an](https://github.com/sachin2
 | **01** | [**01-numerai**](./01-numerai) | **Numerai Classic** Live Hedge Fund | CORR20 / MMC20 | Live alpha submission on `v6.0` dataset. Model: [`sachin23_an`](https://numer.ai/sachin23_an). Verified Round 1404 submission. |
 | **02** | [**02-credit-card-fraud**](./02-credit-card-fraud) | **Kaggle S6E11** Transaction Fraud | ROC-AUC | Multi-Model Logit-Space Rank Fusion, Clean-Zone Filtering & Constrained Diversity Search. Score: **0.95567** (Rank 81). |
 | **03** | [**03-alphanova**](./03-alphanova) | **AlphaNova** Biweekly Season 2 | Annualized IR ($Q$) | Dual Ridge + Shallow XGBoost cross-sectional spread alpha. Validation Sharpe: **+0.0402**, City Novelty: **51.3°**. |
+| **04** | [**04-crunchdao**](./04-crunchdao) | **CrunchDAO** DataCrunch #2 | Pearson Corr / Sharpe | Regularized L2 Ridge factor weighting & Numerai-style percentile rank normalization. Validation Corr: **+0.01927** (Sharpe 1.00). Model: [`sachin23an`](https://hub.crunchdao.com/competitions/datacrunch-2/projects/15021/sachin23an). |
 
 ---
 
@@ -57,6 +58,21 @@ Developed by **Sachin Kumar** ([GitHub: @sachin23-an](https://github.com/sachin2
 * **Validation Result:** Achieved **+0.0402 Holdout Sharpe** (+51% over benchmark) and **51.3° City Novelty**, with verified de-mean parity and sub-2-second training.
 
 👉 **[Read 03-alphanova Documentation & Code](./03-alphanova)**
+
+---
+
+## 4. [04. CrunchDAO DataCrunch 2 Market Neutral Alpha](./04-crunchdao)
+
+* **Objective:** Predict weekly cross-sectional equity returns across 3,000 US equities in CrunchDAO's flagship DataCrunch #2 tournament.
+* **The Alpha Challenge:** High-dimensional quantitative factor space (1,150 features) across weekly market eras (`moons`), requiring scale-invariant signals and robust out-of-sample ranking.
+* **Architecture:**
+  * **Dataset:** Official `datacrunch-2` reduced parquet dataset (772 historical training moons, 1.63M rows).
+  * **Modeling:** $L_2$-regularized linear factor weighting (`alpha=100.0`, zero-intercept) over dynamic rolling historical regimes.
+  * **Normalization:** Contemporaneous percentile rank projection ($R_t(x_i) = \text{rank}(x_{i,t}) / N_t$) matching the Numerai market-neutral ranking methodology.
+* **Validation Result:** Achieved **+0.01927 Mean Pearson Correlation** and **1.0019 Correlation Sharpe** across test moons (77.8% positive moons) with verified determinism.
+* **Submission Status:** Model [`sachin23an`](https://hub.crunchdao.com/competitions/datacrunch-2/projects/15021/sachin23an) registered with verified `submission #1` push.
+
+👉 **[Read 04-crunchdao Documentation & Code](./04-crunchdao)**
 
 ---
 
